@@ -22,11 +22,11 @@
 |:---------:|:------------|:----------|
 | 🎨 | Multiple themes | Múltiplos temas |
 | 🏆 | Achievement system | Sistema de conquistas |
-| 🌙 | Dark mode gameplay | Modo escuro de jogo |
 | 🌐 | Bilingual support | Suporte bilíngue |
 | ⏱️ | Time attack mode | Modo contra o tempo |
 | 🪞 | Mirror mode | Modo espelho |
 | 📊 | Score tracking system | Sistema de pontuação |
+| ⏸️ | Pause system | Sistema de pausa |
 
 </div>
 
@@ -38,7 +38,6 @@
 |:---:|:------------|:----------|
 | 🎯 | Normal Mode | Modo Normal |
 | ⏰ | Time Attack | Contra o Tempo |
-| 🌑 | Dark Mode | Modo Escuro |
 | 🪞 | Mirror Mode | Modo Espelho |
 
 </div>
@@ -78,7 +77,20 @@
 | ↓ | Move down | Move para baixo |
 | ← | Move left | Move para esquerda |
 | → | Move right | Move para direita |
+| Space/P | Pause game | Pausar jogo |
 | Touch | Swipe to move (mobile) | Deslize para mover (celular) |
+
+</div>
+
+### 🕹️ Time Limits | Limites de Tempo
+
+<div align="center">
+
+| Level | Time Limit | Limite de Tempo |
+|:-----:|:----------:|:----------------|
+| 1 | 10s | 10 segundos |
+| 2 | 15s | 15 segundos |
+| 3 | 20s | 20 segundos |
 
 </div>
 
