@@ -1,0 +1,568 @@
+:root {
+    --primary: #7F5AF0;
+    --secondary: #2CB67D;
+    --surface: #16161A;
+    --surface-alt: #242629;
+    --text: #FFFFFE;
+    --stroke: #010101;
+    --highlight: #7F5AF0;
+    --tertiary: #72757E;
+    --danger: #EF4444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--surface);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--surface-alt), var(--surface));
+    padding: 4rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, var(--primary) 0%, transparent 70%);
+    opacity: 0.1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.game-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    color: var(--tertiary);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.benefits-section {
+    padding: 4rem 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--primary);
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 0 1rem;
+}
+
+.benefit-card {
+    background: var(--surface-alt);
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(127, 90, 240, 0.1);
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+}
+
+.benefit-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.benefit-card h3 {
+    color: var(--secondary);
+    margin-bottom: 1rem;
+}
+
+.game-section {
+    background: var(--surface-alt);
+    padding: 2rem;
+    border-radius: 1rem;
+    margin: 2rem 0;
+}
+
+.game-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    align-items: center;
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.difficulty-selector,
+.game-modes,
+.theme-selector,
+.control-buttons {
+    width: 100%;
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 200px;
+    padding: 0.8rem 2.5rem 0.8rem 1rem;
+    border-radius: 0.5rem;
+    background: var(--surface-alt);
+    color: var(--text);
+    border: 1px solid var(--primary);
+    font-size: 1rem;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%237F5AF0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    background-size: 1.2em;
+    transition: all 0.3s ease;
+}
+
+select:hover {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 2px rgba(127, 90, 240, 0.1);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--highlight);
+    box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.2);
+}
+
+.control-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    min-width: 150px;
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.btn.primary {
+    background: linear-gradient(135deg, var(--primary), var(--highlight));
+    color: var(--text);
+    box-shadow: 0 4px 15px rgba(127, 90, 240, 0.3);
+}
+
+.btn.secondary {
+    background: var(--secondary);
+    color: var(--text);
+}
+
+.btn.language-btn {
+    background: var(--surface-alt);
+    color: var(--text);
+    border: 1px solid var(--primary);
+    min-width: 80px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px rgba(127, 90, 240, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.game-container {
+    margin-top: 2rem;
+    background: var(--surface-alt);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.game-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    background: var(--surface-alt);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.stat-label {
+    color: var(--tertiary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+#labirintoCanvas {
+    background: var(--surface-alt);
+    border-radius: 1rem;
+    margin: 2rem auto;
+    display: block;
+    max-width: 100%;
+}
+
+.game-instructions {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.key-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.key {
+    background: var(--primary);
+    color: var(--text);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    margin: 0.2rem;
+}
+
+.path-example {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+}
+
+.ranking-section {
+    margin-top: 4rem;
+}
+
+.ranking-container {
+    background: var(--surface-alt);
+    padding: 2rem;
+    border-radius: 1rem;
+}
+
+.ranking-item {
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 1rem;
+    align-items: center;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--surface-alt);
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    z-index: 1000;
+    text-align: center;
+    min-width: 300px;
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.modal-content h2 {
+    color: var(--primary);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.modal-stat {
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: 1rem;
+}
+
+.modal-stat-label {
+    color: var(--tertiary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.modal-stat-value {
+    color: var(--secondary);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.modal .btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 999;
+}
+
+.footer {
+    text-align: center;
+    padding: 2rem;
+    background: var(--surface-alt);
+    margin-top: 4rem;
+}
+
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2.5rem;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+    
+    .game-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .game-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    select, .btn {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.benefit-icon {
+    animation: pulse 2s infinite;
+}
+
+.language-btn {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--primary);
+}
+
+.language-btn:hover {
+    background: var(--primary);
+}
+
+.mobile-controls {
+    display: none;
+    margin: 2rem 0;
+    padding: 1rem;
+    background: rgba(127, 90, 240, 0.1);
+    border-radius: 1rem;
+}
+
+.mobile-controls-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mobile-controls-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.mobile-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--highlight));
+    color: var(--text);
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(127, 90, 240, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.mobile-btn:active,
+.mobile-btn.pressed {
+    transform: scale(0.9);
+    background: linear-gradient(135deg, var(--highlight), var(--primary));
+    box-shadow: 0 2px 8px rgba(127, 90, 240, 0.2);
+}
+
+@media (max-width: 768px) {
+    .mobile-controls {
+        display: block;
+    }
+    
+    #labirintoCanvas {
+        touch-action: none;
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+.achievements-section {
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.achievement-card {
+    background: var(--surface-alt);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked {
+    opacity: 1;
+    transform: scale(1.05);
+    border: 2px solid var(--primary);
+}
+
+.achievement-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.game-modes,
+.theme-selector {
+    margin: 1rem 0;
+}
+
+.game-modes select,
+.theme-selector select {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--primary);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.game-controls > * {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.game-controls > *:nth-child(1) { animation-delay: 0.1s; }
+.game-controls > *:nth-child(2) { animation-delay: 0.2s; }
+.game-controls > *:nth-child(3) { animation-delay: 0.3s; }
+.game-controls > *:nth-child(4) { animation-delay: 0.4s; }
+
