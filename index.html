@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labirinto Mágico - Treine seu Cérebro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="hero">
+        <div class="hero-content">
+            <div class="title-container">
+                <h1 class="game-title">
+                    <span class="magic">Labirinto</span>
+                    <span class="magical">Mágico</span>
+                </h1>
+                <div class="subtitle-wrapper">
+                    <p class="hero-subtitle">
+                        <span class="highlight">Desenvolva</span> sua mente 
+                        <span class="highlight">enquanto</span> se 
+                        <span class="highlight pulse">diverte!</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="benefits-section">
+            <h2 class="section-title">Why play?</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">🧠</div>
+                    <h3>Logical Thinking</h3>
+                    <p>Improves problem-solving ability and strategic decision making.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">👁️</div>
+                    <h3>Spatial Awareness</h3>
+                    <p>Develops spatial orientation and visual memory.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">⚡</div>
+                    <h3>Concentration</h3>
+                    <p>Increases focus and concentration capacity.</p>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🎯</div>
+                    <h3>Planning</h3>
+                    <p>Exercises planning and strategy execution skills.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="game-section">
+            <div class="game-controls">
+                <div class="difficulty-selector">
+                    <select id="dificuldade" onchange="mudarDificuldade()">
+                        <option value="1">Level 1 - Beginner</option>
+                        <option value="2">Level 2 - Intermediate</option>
+                        <option value="3">Level 3 - Advanced</option>
+                    </select>
+                </div>
+                <div class="game-modes">
+                    <select id="gameMode" onchange="mudarModoJogo()">
+                        <option value="normal">Modo Normal</option>
+                        <option value="timeAttack">Contra o Tempo</option>
+                        <option value="mirror">Modo Espelho</option>
+                    </select>
+                </div>
+                <div class="theme-selector">
+                    <select id="theme" onchange="mudarTema()">
+                        <option value="CLASSIC">Clássico</option>
+                        <option value="SPACE">Espacial</option>
+                        <option value="FOREST">Florestal</option>
+                    </select>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn primary" onclick="iniciarNovoJogo()">
+                        <span class="btn-icon">🎮</span>New Game
+                    </button>
+                    <button class="btn language-btn" onclick="toggleLanguage()">EN</button>
+                </div>
+            </div>
+
+            <div class="game-container">
+                <div class="game-stats">
+                    <div class="stat-item">
+                        <span class="stat-label" data-stat="time">Tempo</span>
+                        <span class="stat-value" id="tempo">0s</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label" data-stat="score">Pontuação</span>
+                        <span class="stat-value" id="pontuacao">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label" data-stat="record">Recorde</span>
+                        <span class="stat-value" id="melhorTempo">-</span>
+                    </div>
+                </div>
+                
+                <canvas id="labirintoCanvas"></canvas>
+
+                <div class="mobile-controls">
+                    <div class="mobile-controls-grid">
+                        <button class="mobile-btn" data-direction="ArrowUp">↑</button>
+                        <div class="mobile-controls-row">
+                            <button class="mobile-btn" data-direction="ArrowLeft">←</button>
+                            <button class="mobile-btn" data-direction="ArrowDown">↓</button>
+                            <button class="mobile-btn" data-direction="ArrowRight">→</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-instructions">
+                    <h3>Como Jogar</h3>
+                    <div class="instructions-grid">
+                        <div class="instruction-item">
+                            <div class="key-group">
+                                <span class="key">↑</span>
+                                <div>
+                                    <span class="key">←</span>
+                                    <span class="key">↓</span>
+                                    <span class="key">→</span>
+                                </div>
+                            </div>
+                            <p>Use as setas para mover</p>
+                        </div>
+                        <div class="instruction-item">
+                            <div class="path-example">
+                                <span class="start">🟢</span>
+                                <span class="arrow">➜</span>
+                                <span class="end">🔵</span>
+                            </div>
+                            <p>Chegue ao final do labirinto</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="ranking-section">
+            <h2 class="section-title">Ranking</h2>
+            <div class="ranking-container">
+                <div id="rankingList"></div>
+            </div>
+        </section>
+
+        <section class="achievements-section">
+            <h2 class="section-title">Conquistas</h2>
+            <div class="achievements-grid" id="achievementsGrid">
+                <!-- Conquistas serão adicionadas dinamicamente aqui -->
+            </div>
+        </section>
+    </main>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2>🎉 Parabéns!</h2>
+            <p>Você completou o labirinto!</p>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <span class="modal-stat-label">Tempo</span>
+                    <span class="modal-stat-value" id="tempoFinal"></span>
+                </div>
+                <div class="modal-stat">
+                    <span class="modal-stat-label">Pontuação</span>
+                    <span class="modal-stat-value" id="pontuacaoFinal"></span>
+                </div>
+            </div>
+            <button class="btn primary" onclick="fecharModal()">Jogar Novamente</button>
+        </div>
+    </div>
+    <div class="overlay"></div>
+
+    <footer class="footer">
+        <p>© 2024 Matheus Ricardo - Todos os direitos reservados</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html> 
