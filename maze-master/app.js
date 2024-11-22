@@ -1,3 +1,30 @@
+const THEMES = {
+    CLASSIC: {
+        name: 'classic',
+        background: '#f0f0f0',
+        walls: '#2c3e50',
+        player: '#e74c3c',
+        start: '#2ecc71',
+        end: '#3498db'
+    },
+    SPACE: {
+        name: 'space',
+        background: '#0a0a2a',
+        walls: '#4a4a8a',
+        player: '#ff6b6b',
+        start: '#4ecdc4',
+        end: '#ffbe0b'
+    },
+    FOREST: {
+        name: 'forest',
+        background: '#1a472a',
+        walls: '#90ee90',
+        player: '#ff7f50',
+        start: '#90ee90',
+        end: '#40e0d0'
+    }
+};
+
 class Labirinto {
     constructor(linhas, colunas) {
         this.linhas = linhas;
@@ -11,7 +38,15 @@ class Labirinto {
         this.tempoInicio = null;
         this.pontuacao = 0;
         this.jogoTerminado = false;
-        this.gameMode = GAME_MODES.NORMAL;
+        this.modoTimeAttack = false;
+        this.modoMirror = false;
+        this.gameMode = 'normal';
+        this.tempoMaximo = 10;
+        this.visibilityRadius = 2;
+        this.isPaused = false;
+        this.tempoPausado = 0;
+        this.tempoDecorridoAntesDoUltimoPause = 0;
+        this.currentTheme = THEMES.CLASSIC;
         this.inicializar();
     }
 
@@ -158,6 +193,7 @@ class Labirinto {
     }
 
     desenharLabirinto(canvas) {
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
         const cellSize = 30;
         
@@ -257,27 +293,69 @@ class Labirinto {
         );
         ctx.fill();
         
-        // Se estiver no modo escuro, adicionar o efeito de escuridão
-        if (this.modoDark) {
-            this.aplicarEfeitoEscuro(ctx);
+        // Atualizar tempo normal (quando não está no modo time attack)
+        if (!this.modoTimeAttack && this.primeiroMovimento) {
+            let tempoExibir;
+            if (this.isPaused) {
+                tempoExibir = Math.floor(this.tempoDecorridoAntesDoUltimoPause / 1000);
+            } else {
+                tempoExibir = Math.floor((Date.now() - this.tempoInicio) / 1000);
+            }
+            document.getElementById('tempo').textContent = tempoExibir;
+        } else if (this.modoTimeAttack) {
+            // Se estiver no modo contra o tempo, esconde o tempo normal
+            document.getElementById('tempo').textContent = '-';
         }
-        
-        // Se estiver no modo contra o tempo, mostrar o timer
+
+        // Mostrar timer no modo contra o tempo
         if (this.modoTimeAttack && this.primeiroMovimento) {
-            const tempoRestante = Math.max(0, this.tempoMaximo - Math.floor((Date.now() - this.tempoInicio) / 1000));
-            ctx.fillStyle = tempoRestante < 10 ? '#ff0000' : '#ffffff';
+            let tempoDecorrido;
+            if (this.isPaused) {
+                tempoDecorrido = this.tempoDecorridoAntesDoUltimoPause / 1000;
+            } else {
+                tempoDecorrido = Math.floor((Date.now() - this.tempoInicio) / 1000);
+            }
+            
+            const tempoRestante = Math.max(0, this.tempoMaximo - tempoDecorrido);
+            
+            // Desenhar fundo do timer
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(canvas.width/2 - 40, 10, 80, 30);
+            
+            // Desenhar texto do timer
+            ctx.fillStyle = tempoRestante <= 3 ? '#ff0000' : '#ffffff';
             ctx.font = 'bold 24px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(`${tempoRestante}s`, canvas.width/2, 30);
+            ctx.fillText(`${Math.ceil(tempoRestante)}`, canvas.width/2, 32);
             
-            if (tempoRestante === 0 && !this.jogoTerminado) {
+            // Verificar se o tempo acabou apenas se não estiver pausado
+            if (tempoRestante === 0 && !this.jogoTerminado && !this.isPaused) {
                 this.finalizarJogo(true);
             }
+        }
+
+        // Mostrar tela de pause para todos os modos
+        if (this.isPaused) {
+            const t = TRANSLATIONS[currentLanguage];
+            // Overlay escuro semi-transparente
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Texto "PAUSADO"
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(t.pause.paused, canvas.width/2, canvas.height/2);
+
+            // Texto adicional
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText(t.pause.pressText, canvas.width/2, canvas.height/2 + 40);
         }
     }
 
     moverJogador(direcao) {
-        if (this.jogoTerminado) return;
+        if (this.jogoTerminado || this.isPaused) return;
         
         // Se for o primeiro movimento, inicia o timer
         if (!this.primeiroMovimento) {
@@ -285,10 +363,22 @@ class Labirinto {
             this.tempoInicio = Date.now();
         }
         
-        // No modo espelho, inverte as direções esquerda/direita
+        // Aplicar efeito espelho no modo mirror
         if (this.modoMirror) {
-            if (direcao === 'ArrowLeft') direcao = 'ArrowRight';
-            else if (direcao === 'ArrowRight') direcao = 'ArrowLeft';
+            switch(direcao) {
+                case 'ArrowLeft':
+                    direcao = 'ArrowRight';
+                    break;
+                case 'ArrowRight':
+                    direcao = 'ArrowLeft';
+                    break;
+                case 'ArrowUp':
+                    direcao = 'ArrowDown';
+                    break;
+                case 'ArrowDown':
+                    direcao = 'ArrowUp';
+                    break;
+            }
         }
         
         let novaLinha = this.jogadorLinha;
@@ -316,24 +406,19 @@ class Labirinto {
                 return;
         }
 
-        // Verifica se o movimento é válido
-        if (this.ehValido(novaLinha, novaColuna)) {
-            // Verifica se não há parede no caminho
-            if (!this.grade[this.jogadorLinha][this.jogadorColuna].paredes[direcaoParede]) {
-                // Inicia o timer no primeiro movimento
-                if (!this.primeiroMovimento) {
-                    this.primeiroMovimento = true;
-                    this.tempoInicio = Date.now();
-                }
-                
-                this.jogadorLinha = novaLinha;
-                this.jogadorColuna = novaColuna;
-                
-                // Verifica se chegou ao final
-                if (this.jogadorLinha === this.linhas - 1 && this.jogadorColuna === this.colunas - 1) {
-                    this.finalizarJogo();
-                }
+        if (this.ehValido(novaLinha, novaColuna) && 
+            !this.grade[this.jogadorLinha][this.jogadorColuna].paredes[direcaoParede]) {
+            this.jogadorLinha = novaLinha;
+            this.jogadorColuna = novaColuna;
+            
+            // Verificar se chegou ao final
+            if (this.jogadorLinha === this.linhas - 1 && 
+                this.jogadorColuna === this.colunas - 1) {
+                this.finalizarJogo(false);
             }
+            
+            // Redesenhar o labirinto após o movimento
+            this.desenharLabirinto(document.getElementById('labirintoCanvas'));
         }
     }
 
@@ -349,21 +434,36 @@ class Labirinto {
     finalizarJogo(perdeuPorTempo = false) {
         this.jogoTerminado = true;
         const tempoTotal = (Date.now() - this.tempoInicio) / 1000;
+        const t = TRANSLATIONS[currentLanguage];
         
         if (perdeuPorTempo) {
             this.pontuacao = 0;
-            mostrarModalDerrota("Tempo Esgotado!");
-        } else {
-            // Cálculo normal da pontuação
-            const tempoMaximo = this.modoTimeAttack ? this.tempoMaximo : NIVEIS[this.dificuldade].tempoMaximo;
-            this.pontuacao = Math.max(
-                Math.floor((1000 * this.dificuldade) * (1 - tempoTotal / tempoMaximo)),
-                0
-            );
+            const modal = document.getElementById('modal');
+            const overlay = document.querySelector('.overlay');
             
-            // Bônus para modo escuro e espelho
-            if (this.modoDark) this.pontuacao *= 1.5;
+            modal.querySelector('h2').textContent = t.timeUp.title;
+            modal.querySelector('p').textContent = t.timeUp.message;
+            document.getElementById('tempoFinal').textContent = `${this.tempoMaximo}s`;
+            document.getElementById('pontuacaoFinal').textContent = '0';
+            
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+        } else {
+            // Novo cálculo da pontuação para vitória
+            const tempoMaximo = this.modoTimeAttack ? this.tempoMaximo : NIVEIS[this.dificuldade].tempoMaximo;
+            const pontuacaoBase = 1000 * this.dificuldade;
+            const multiplicadorTempo = Math.max(0, 1 - (tempoTotal / tempoMaximo));
+            this.pontuacao = Math.floor(pontuacaoBase * multiplicadorTempo);
+            
+            // Bônus para modos especiais
             if (this.modoMirror) this.pontuacao *= 1.5;
+            if (this.modoTimeAttack) this.pontuacao *= 2;
+            
+            // Garantir que a pontuação seja pelo menos 100 pontos por completar
+            this.pontuacao = Math.max(100, this.pontuacao);
+            
+            // Verificar conquistas
+            verificarConquistas(tempoTotal, this.pontuacao, this.dificuldade);
             
             atualizarRecordes(this.dificuldade, tempoTotal, this.pontuacao);
             mostrarModalVitoria(tempoTotal, this.pontuacao);
@@ -529,64 +629,70 @@ class Labirinto {
     }
 
     setGameMode(mode) {
+        // Primeiro, desativa todos os modos
+        this.modoTimeAttack = false;
+        this.modoMirror = false;
+        
         this.gameMode = mode;
+        
         switch (mode) {
             case 'timeAttack':
-                this.tempoMaximo = 60; // 60 segundos para completar
                 this.modoTimeAttack = true;
-                this.modoDark = false;
-                this.modoMirror = false;
+                const nivelAtual = parseInt(document.getElementById('dificuldade').value) || 1;
+                this.tempoMaximo = NIVEIS[nivelAtual].tempoMaximo;
+                document.getElementById('tempo').textContent = '-';
                 break;
-            case 'dark':
-                this.modoDark = true;
-                this.modoTimeAttack = false;
-                this.modoMirror = false;
-                this.visibilityRadius = 2; // Células visíveis ao redor
-                break;
+                
             case 'mirror':
                 this.modoMirror = true;
-                this.modoTimeAttack = false;
-                this.modoDark = false;
                 break;
+                
+            case 'normal':
             default:
-                this.modoTimeAttack = false;
-                this.modoDark = false;
-                this.modoMirror = false;
                 break;
         }
+        
         this.iniciarJogo();
+        this.desenharLabirinto(document.getElementById('labirintoCanvas'));
     }
 
-    aplicarEfeitoEscuro(ctx) {
-        const cellSize = 30;
-        const visibilityRadius = this.visibilityRadius * cellSize;
-        
-        // Cria máscara escura
-        ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Cria área visível ao redor do jogador
-        ctx.globalCompositeOperation = 'destination-out';
-        const gradient = ctx.createRadialGradient(
-            this.jogadorColuna * cellSize + cellSize/2,
-            this.jogadorLinha * cellSize + cellSize/2,
-            0,
-            this.jogadorColuna * cellSize + cellSize/2,
-            this.jogadorLinha * cellSize + cellSize/2,
-            visibilityRadius
-        );
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 1)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.restore();
+    mudarDificuldade() {
+        const nivel = parseInt(document.getElementById('dificuldade').value) || 1;
+        if (this.modoTimeAttack) {
+            this.tempoMaximo = NIVEIS[nivel].tempoMaximo;
+        }
+        iniciarNovoJogo();
     }
 
     setTheme(theme) {
-        this.currentTheme = THEMES[theme];
-        const canvas = document.getElementById('labirintoCanvas');
-        this.desenharLabirinto(canvas);
+        if (THEMES[theme]) {
+            this.currentTheme = THEMES[theme];
+            const canvas = document.getElementById('labirintoCanvas');
+            this.desenharLabirinto(canvas);
+        }
+    }
+
+    togglePause() {
+        this.isPaused = !this.isPaused;
+        const t = TRANSLATIONS[currentLanguage];
+        
+        if (this.isPaused) {
+            if (this.primeiroMovimento) {
+                this.tempoPausado = Date.now();
+                this.tempoDecorridoAntesDoUltimoPause = this.tempoPausado - this.tempoInicio;
+            }
+            document.querySelector('.btn.pause-btn').innerHTML = 
+                `<span class="btn-icon">▶️</span>${t.pause.continue}`;
+        } else {
+            if (this.primeiroMovimento) {
+                const tempoEmPause = Date.now() - this.tempoPausado;
+                this.tempoInicio = Date.now() - this.tempoDecorridoAntesDoUltimoPause;
+            }
+            document.querySelector('.btn.pause-btn').innerHTML = 
+                `<span class="btn-icon">⏸️</span>${t.pause.pause}`;
+        }
+        
+        this.desenharLabirinto(document.getElementById('labirintoCanvas'));
     }
 }
 
@@ -596,9 +702,9 @@ let intervalId;
 
 // Adicione estas constantes no início do arquivo, após a definição da classe
 const NIVEIS = {
-    1: { nome: "Fácil", tamanho: 7, tempoMaximo: 60 },
-    2: { nome: "Médio", tamanho: 11, tempoMaximo: 120 },
-    3: { nome: "Difícil", tamanho: 15, tempoMaximo: 180 }
+    1: { nome: "Fácil", tamanho: 7, tempoMaximo: 10 },    // 10 segundos
+    2: { nome: "Médio", tamanho: 11, tempoMaximo: 15 },   // 15 segundos
+    3: { nome: "Difícil", tamanho: 15, tempoMaximo: 20 }  // 20 segundos
 };
 
 // Adicione no início do arquivo, após as constantes
@@ -658,13 +764,22 @@ const TRANSLATIONS = {
         gameModes: {
             normal: "Modo Normal",
             timeAttack: "Contra o Tempo",
-            dark: "Modo Escuro",
             mirror: "Modo Espelho"
         },
         themes: {
             CLASSIC: "Clássico",
             SPACE: "Espacial",
             FOREST: "Floresta"
+        },
+        pause: {
+            pause: "PAUSE",
+            continue: "CONTINUAR",
+            paused: "PAUSADO",
+            pressText: "Pressione CONTINUAR para voltar ao jogo"
+        },
+        timeUp: {
+            title: "❌ Tempo Esgotado!",
+            message: "Você não conseguiu completar o labirinto a tempo!"
         }
     },
     en: {
@@ -722,13 +837,22 @@ const TRANSLATIONS = {
         gameModes: {
             normal: "Normal Mode",
             timeAttack: "Time Attack",
-            dark: "Dark Mode",
             mirror: "Mirror Mode"
         },
         themes: {
             CLASSIC: "Classic",
             SPACE: "Space",
             FOREST: "Forest"
+        },
+        pause: {
+            pause: "PAUSE",
+            continue: "CONTINUE",
+            paused: "PAUSED",
+            pressText: "Press CONTINUE to resume game"
+        },
+        timeUp: {
+            title: "❌ Time's Up!",
+            message: "You didn't complete the maze in time!"
         }
     }
 };
@@ -738,6 +862,7 @@ let currentLanguage = 'pt';
 function toggleLanguage() {
     currentLanguage = currentLanguage === 'pt' ? 'en' : 'pt';
     updateLanguage();
+    criarSecaoConquistas(); // Recriar seção de conquistas com novo idioma
     localStorage.setItem('preferredLanguage', currentLanguage);
 }
 
@@ -834,15 +959,17 @@ function iniciarNovoJogo() {
     }
     
     const nivel = parseInt(document.getElementById('dificuldade').value) || 1;
+    const modoAtual = document.getElementById('gameMode').value;
+    
     labirinto = new Labirinto(NIVEIS[nivel].tamanho, NIVEIS[nivel].tamanho);
     labirinto.setDificuldade(nivel);
-    labirinto.gerarLabirintoUnico(); // Usa o novo mtodo
+    labirinto.gerarLabirinto(); // Gerar o labirinto antes de definir o modo
+    labirinto.setGameMode(modoAtual);
     labirinto.iniciarJogo();
     
-    document.getElementById('tempo').textContent = '0';
-    document.getElementById('pontuacao').textContent = '0';
-    
     const canvas = document.getElementById('labirintoCanvas');
+    canvas.width = labirinto.colunas * 30; // Definir tamanho do canvas
+    canvas.height = labirinto.linhas * 30;
     labirinto.desenharLabirinto(canvas);
     
     atualizarExibicaoRecordes(nivel);
@@ -963,8 +1090,23 @@ function iniciarTimer() {
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     inicializarIdioma();
-    iniciarNovoJogo();
-    setupMobileControls(); // Garante que os controles móveis sejam configurados
+    criarSecaoConquistas();
+    
+    // Adicionar botão de pause
+    const t = TRANSLATIONS[currentLanguage];
+    const controlButtons = document.querySelector('.control-buttons');
+    const pauseButton = document.createElement('button');
+    pauseButton.className = 'btn pause-btn';
+    pauseButton.innerHTML = `<span class="btn-icon">⏸️</span>${t.pause.pause}`;
+    pauseButton.onclick = () => {
+        if (labirinto) {
+            labirinto.togglePause();
+        }
+    };
+    controlButtons.appendChild(pauseButton);
+    
+    iniciarNovoJogo(); // Iniciar o jogo após criar as conquistas
+    setupMobileControls();
 });
 
 document.addEventListener('keydown', (e) => {
@@ -1054,12 +1196,8 @@ function mostrarModalVitoria(tempo, pontuacao) {
     const overlay = document.querySelector('.overlay');
     const t = TRANSLATIONS[currentLanguage];
     
-    // Atualiza os textos do modal
     modal.querySelector('h2').textContent = t.modal.congrats;
     modal.querySelector('p').textContent = t.modal.completed;
-    modal.querySelectorAll('.modal-stat-label')[0].textContent = t.modal.time;
-    modal.querySelectorAll('.modal-stat-label')[1].textContent = t.modal.score;
-    
     document.getElementById('tempoFinal').textContent = `${Math.floor(tempo)}s`;
     document.getElementById('pontuacaoFinal').textContent = pontuacao;
     
@@ -1133,7 +1271,7 @@ function handleTouchEnd() {
     isDragging = false;
 }
 
-// Adicione esta função para configurar os controles móveis
+// Adicione esta funço para configurar os controles móveis
 function setupMobileControls() {
     const canvas = document.getElementById('labirintoCanvas');
     
@@ -1187,125 +1325,219 @@ function setupMobileControls() {
     });
 } 
 
-// Adicione este objeto para gerenciar as conquistas
+// Adicionar constante para as conquistas
 const ACHIEVEMENTS = {
     SPEED_RUNNER: {
         id: 'speedRunner',
-        name: 'Speed Runner',
-        description: 'Complete um labirinto em menos de 30 segundos',
-        icon: '⚡'
+        icon: '⚡',
+        titlePt: 'Velocista',
+        titleEn: 'Speed Runner',
+        descPt: 'Complete em menos de 30s',
+        descEn: 'Complete under 30s'
     },
-    MASTER: {
-        id: 'master',
-        name: 'Mestre do Labirinto',
-        description: 'Complete todos os níveis de dificuldade',
-        icon: '👑'
+    MAZE_MASTER: {
+        id: 'mazeMaster',
+        icon: '👑',
+        titlePt: 'Mestre do Labirinto',
+        titleEn: 'Maze Master',
+        descPt: 'Complete todos os níveis',
+        descEn: 'Complete all levels'
     },
     PERFECTIONIST: {
         id: 'perfectionist',
-        name: 'Perfeccionista',
-        description: 'Obtenha pontuação máxima',
-        icon: '🎯'
+        icon: '🎯',
+        titlePt: 'Perfeccionista',
+        titleEn: 'Perfectionist',
+        descPt: 'Obtenha pontuação máxima',
+        descEn: 'Get max score'
     },
     PERSISTENT: {
         id: 'persistent',
-        name: 'Persistente',
-        description: 'Complete 10 labirintos',
-        icon: '🏆'
+        icon: '🏆',
+        titlePt: 'Persistente',
+        titleEn: 'Persistent',
+        descPt: 'Complete 10 labirintos',
+        descEn: 'Complete 10 mazes'
     }
 };
 
-// Adicione esta função para gerenciar conquistas
-function verificarConquistas(tempo, pontuacao, nivel) {
-    let conquistas = JSON.parse(localStorage.getItem('conquistas')) || {};
-    let novasConquistas = [];
+// Adicionar função para criar a seção de conquistas
+function criarSecaoConquistas() {
+    const achievementsSection = document.querySelector('.achievements-section');
+    const achievementsGrid = document.createElement('div');
+    achievementsGrid.className = 'achievements-grid';
 
-    // Verifica Speed Runner
-    if (tempo < 30 && !conquistas.speedRunner) {
-        conquistas.speedRunner = true;
-        novasConquistas.push(ACHIEVEMENTS.SPEED_RUNNER);
-    }
+    // Atualizar o título da seção baseado no idioma
+    achievementsSection.innerHTML = `
+        <h2 class="section-title">${currentLanguage === 'pt' ? 'Conquistas' : 'Achievements'}</h2>
+    `;
 
-    // Verifica Perfectionist
-    if (pontuacao >= 1000 && !conquistas.perfectionist) {
-        conquistas.perfectionist = true;
-        novasConquistas.push(ACHIEVEMENTS.PERFECTIONIST);
-    }
+    // Criar cards para cada conquista
+    Object.values(ACHIEVEMENTS).forEach(achievement => {
+        const card = document.createElement('div');
+        card.className = 'achievement-card';
+        card.id = `achievement-${achievement.id}`;
+        
+        const isUnlocked = verificarConquistaDesbloqueada(achievement.id);
+        if (isUnlocked) {
+            card.classList.add('unlocked');
+        }
 
-    // Verifica Persistent
-    let completados = (conquistas.completados || 0) + 1;
-    conquistas.completados = completados;
-    if (completados >= 10 && !conquistas.persistent) {
-        conquistas.persistent = true;
-        novasConquistas.push(ACHIEVEMENTS.PERSISTENT);
-    }
+        // Usar o ícone correto baseado no idioma
+        let icon;
+        switch(achievement.id) {
+            case 'speedRunner':
+                icon = '⚡';
+                break;
+            case 'mazeMaster':
+                icon = '👑';
+                break;
+            case 'perfectionist':
+                icon = '🎯';
+                break;
+            case 'persistent':
+                icon = '🏆';
+                break;
+        }
 
-    // Verifica Master
-    let niveisCompletados = conquistas.niveisCompletados || {};
-    niveisCompletados[nivel] = true;
-    conquistas.niveisCompletados = niveisCompletados;
-    if (Object.keys(niveisCompletados).length === 3 && !conquistas.master) {
-        conquistas.master = true;
-        novasConquistas.push(ACHIEVEMENTS.MASTER);
-    }
+        card.innerHTML = `
+            <div class="achievement-icon">${icon}</div>
+            <h3>${currentLanguage === 'pt' ? achievement.titlePt : achievement.titleEn}</h3>
+            <p>${currentLanguage === 'pt' ? achievement.descPt : achievement.descEn}</p>
+        `;
 
-    localStorage.setItem('conquistas', JSON.stringify(conquistas));
+        achievementsGrid.appendChild(card);
+    });
 
-    // Mostra novas conquistas
-    if (novasConquistas.length > 0) {
-        mostrarConquistasNovas(novasConquistas);
-    }
-} 
+    achievementsSection.appendChild(achievementsGrid);
+}
 
-// Adicione este objeto para os modos de jogo
-const GAME_MODES = {
-    NORMAL: 'normal',
-    TIME_ATTACK: 'timeAttack',
-    DARK: 'dark',
-    MIRROR: 'mirror'
-}; 
+// Função para verificar se uma conquista está desbloqueada
+function verificarConquistaDesbloqueada(achievementId) {
+    const conquistas = JSON.parse(localStorage.getItem('conquistas')) || {};
+    return conquistas[achievementId] || false;
+}
 
-// Adicione este objeto para temas
-const THEMES = {
-    CLASSIC: {
-        name: 'classic',
-        background: '#f0f0f0',
-        walls: '#2c3e50',
-        player: '#e74c3c',
-        start: '#2ecc71',
-        end: '#3498db'
-    },
-    SPACE: {
-        name: 'space',
-        background: '#0a0a2a',
-        walls: '#4a4a8a',
-        player: '#ff6b6b',
-        start: '#4ecdc4',
-        end: '#ffbe0b'
-    },
-    FOREST: {
-        name: 'forest',
-        background: '#1a472a',    // Verde escuro para o fundo
-        walls: '#dcd9c6',         // Bege claro para as paredes
-        player: '#ff7f50',        // Laranja para o jogador
-        start: '#90ee90',         // Verde claro para início
-        end: '#40e0d0',          // Turquesa para fim
-        pathColor: '#8b4513'      // Marrom para caminhos
-    }
-}; 
+// Função para mostrar notificação de conquista
+function mostrarNotificacaoConquista(achievement) {
+    const notification = document.createElement('div');
+    notification.className = 'achievement-notification';
+    notification.innerHTML = `
+        <div class="achievement-icon">${achievement.icon}</div>
+        <div class="achievement-info">
+            <h4>${currentLanguage === 'pt' ? achievement.titlePt : achievement.titleEn}</h4>
+            <p>${currentLanguage === 'pt' ? achievement.descPt : achievement.descEn}</p>
+        </div>
+    `;
 
-// Adicione estas funções para controlar os modos de jogo e temas
-function mudarModoJogo() {
-    const modo = document.getElementById('gameMode').value;
-    if (labirinto) {
-        labirinto.setGameMode(modo);
-        iniciarNovoJogo();
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }, 100);
+}
+
+// Função para desbloquear uma conquista
+function desbloquearConquista(achievementId) {
+    const conquistas = JSON.parse(localStorage.getItem('conquistas')) || {};
+    if (!conquistas[achievementId]) {
+        conquistas[achievementId] = true;
+        localStorage.setItem('conquistas', JSON.stringify(conquistas));
+        
+        const achievement = Object.values(ACHIEVEMENTS).find(a => a.id === achievementId);
+        if (achievement) {
+            mostrarNotificacaoConquista(achievement);
+            const card = document.getElementById(`achievement-${achievementId}`);
+            if (card) {
+                card.classList.add('unlocked');
+            }
+        }
     }
 }
 
+// Adicionar função para verificar conquistas
+function verificarConquistas(tempo, pontuacao, nivel) {
+    // Speed Runner - Complete em menos de 30s
+    if (tempo < 30) {
+        desbloquearConquista('speedRunner');
+    }
+
+    // Perfectionist - Pontuação máxima
+    const pontuacaoMaximaPossivel = 1000 * nivel;
+    if (pontuacao >= pontuacaoMaximaPossivel) {
+        desbloquearConquista('perfectionist');
+    }
+
+    // Persistent - Complete 10 labirintos
+    const labirintosCompletados = parseInt(localStorage.getItem('labirintosCompletados') || '0') + 1;
+    localStorage.setItem('labirintosCompletados', labirintosCompletados);
+    if (labirintosCompletados >= 10) {
+        desbloquearConquista('persistent');
+    }
+
+    // Maze Master - Complete todos os níveis
+    const niveisCompletados = JSON.parse(localStorage.getItem('niveisCompletados') || '{}');
+    niveisCompletados[nivel] = true;
+    localStorage.setItem('niveisCompletados', JSON.stringify(niveisCompletados));
+    
+    if (Object.keys(niveisCompletados).length >= 3) {
+        desbloquearConquista('mazeMaster');
+    }
+} 
+
+// Atualizar a função que inicializa o select de modos de jogo
+document.addEventListener('DOMContentLoaded', function() {
+    // ... código existente ...
+
+    // Limpar e recriar o select de modos de jogo
+    const gameModeSelect = document.getElementById('gameMode');
+    const t = TRANSLATIONS[currentLanguage];
+    
+    // Definir as opções diretamente
+    gameModeSelect.innerHTML = `
+        <option value="normal">${t.gameModes.normal}</option>
+        <option value="timeAttack">${t.gameModes.timeAttack}</option>
+        <option value="mirror">${t.gameModes.mirror}</option>
+    `;
+
+    // Atualizar a função updateLanguage para também atualizar o select de modos
+    function updateLanguage() {
+        const t = TRANSLATIONS[currentLanguage];
+        const gameModeSelect = document.getElementById('gameMode');
+        
+        // Atualizar as opções do select com o idioma correto
+        const options = gameModeSelect.options;
+        options[0].text = t.gameModes.normal;
+        options[1].text = t.gameModes.timeAttack;
+        options[2].text = t.gameModes.mirror;
+        
+        // ... resto do código de updateLanguage ...
+    }
+
+    // ... resto do código do DOMContentLoaded ...
+});
+
+// Atualizar a função mudarModoJogo para garantir que apenas modos válidos sejam aceitos
+function mudarModoJogo() {
+    const modoSelecionado = document.getElementById('gameMode').value;
+    const modosValidos = ['normal', 'timeAttack', 'mirror'];
+    
+    if (labirinto && modosValidos.includes(modoSelecionado)) {
+        labirinto.setGameMode(modoSelecionado);
+    }
+} 
+
+// Adicionar função para mudar tema
 function mudarTema() {
-    const tema = document.getElementById('theme').value;
-    if (labirinto) {
-        labirinto.setTheme(tema);
+    const temaSelect = document.getElementById('theme');
+    const temaSelecionado = temaSelect.value;
+    
+    if (labirinto && THEMES[temaSelecionado]) {
+        labirinto.setTheme(temaSelecionado);
     }
 } 

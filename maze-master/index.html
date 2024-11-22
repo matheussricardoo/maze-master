@@ -10,8 +10,19 @@
 <body>
     <header class="hero">
         <div class="hero-content">
-            <h1 class="game-title">Labirinto Mágico</h1>
-            <p class="hero-subtitle">Desenvolva sua mente enquanto se diverte!</p>
+            <div class="title-container">
+                <h1 class="game-title">
+                    <span class="magic">Labirinto</span>
+                    <span class="magical">Mágico</span>
+                </h1>
+                <div class="subtitle-wrapper">
+                    <p class="hero-subtitle">
+                        <span class="highlight">Desenvolva</span> sua mente 
+                        <span class="highlight">enquanto</span> se 
+                        <span class="highlight pulse">diverte!</span>
+                    </p>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -53,17 +64,16 @@
                 </div>
                 <div class="game-modes">
                     <select id="gameMode" onchange="mudarModoJogo()">
-                        <option value="normal">Normal Mode</option>
-                        <option value="timeAttack">Time Attack</option>
-                        <option value="dark">Dark Mode</option>
-                        <option value="mirror">Mirror Mode</option>
+                        <option value="normal">Modo Normal</option>
+                        <option value="timeAttack">Contra o Tempo</option>
+                        <option value="mirror">Modo Espelho</option>
                     </select>
                 </div>
                 <div class="theme-selector">
                     <select id="theme" onchange="mudarTema()">
-                        <option value="CLASSIC">Classic</option>
-                        <option value="SPACE">Space</option>
-                        <option value="FOREST">Forest</option>
+                        <option value="CLASSIC">Clássico</option>
+                        <option value="SPACE">Espacial</option>
+                        <option value="FOREST">Florestal</option>
                     </select>
                 </div>
                 <div class="control-buttons">
