@@ -1,5 +1,3 @@
-# Maze Master 🎮
-
 <div align="center">
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=7F5AF0&height=200&section=header&text=Maze%20Master&fontSize=50&fontColor=fff&animation=twinkling&fontAlignY=40&desc=JavaScript%20|%20HTML5%20Canvas%20|%20Modern%20Design&descAlignY=60&descSize=18">
